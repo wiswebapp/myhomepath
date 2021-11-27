@@ -1,0 +1,16 @@
+{
+    "name": "webster/allinoneapp",
+    "type": "project",
+    "description": "All in one application.",
+    "keywords": [
+        "framework",
+        "allinone"
+    ],
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "controller\\": "controller/",
+            "modal\\": "modal/"
+        }
+    }
+}
