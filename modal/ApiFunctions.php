@@ -49,7 +49,8 @@ class ApiFunctions
 
     public function createAccessToken($userId) {
         $accessToken = MD5("LOGINTOKEN_". rand(1111111111,9999999999)) . date('Ymdhis');
-        $this->updateDataToDb('med_users', ['accessToken' => $accessToken,''], ['id' => $userId]);
+        $updateToken = $this->updateDataToDb('med_users', ['accessToken' => $accessToken], ['id' => $userId]);
+
         return $accessToken;
     }
 
@@ -75,7 +76,7 @@ class ApiFunctions
         
         $query = "UPDATE `" . $table . "` SET";
         foreach ($data as $key => $value) {
-            $query .= " $key = '$value',";
+            $query .= " `$key` = '". $value ."',";
         }
         $query = rtrim($query, ',');
 
@@ -86,13 +87,12 @@ class ApiFunctions
                 if (count($keyArr) > 1) {
                     $query .= "$keyArr[0] $keyArr[1] '$value' AND ";
                 } else {
-                    $query .= "$key = '$value' AND ";
+                    $query .= "`$key` = '". $value ."' AND ";
                 }
             }
         }
 
         $query = substr($query, 0, strlen($query) - 4);
-
         $result = $this->conn->query($query);
 
         return $result;

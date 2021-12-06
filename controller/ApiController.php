@@ -26,25 +26,26 @@ class ApiController {
         $data['password'] = isset($_REQUEST['password']) ? MD5(trim($_REQUEST['password'])) : "";
 
         if(empty($data['name']) || empty($data['email']) || empty($data['phone']) || empty($data['password'])) {
-            $response['data']['success'] = false;
-            $response['data']['message'] = "Required parameter missing";
+            $response['success'] = false;
+            $response['message'] = "Required parameter missing";
             $this->setResponse($response);
         }
 
         if($this->apiFunctions->checkUserExist($data['email'] , $data['phone'])) {
-            $response['data']['success'] = false;
-            $response['data']['message'] = "User Already Exist";
+            $response['success'] = false;
+            $response['message'] = "User Already Exist";
             $this->setResponse($response);   
         }
 
         $registerUser = $this->apiFunctions->addDataToDb('med_users', $data);
         if($registerUser) {
-            $response['data'] = $registerUser;
-            $response['data']['success'] = true;
-            $response['data']['message'] = "User Registerd successfully";    
+            $userData = $this->apiFunctions->getDataFromDb('*', 'med_users', ['id' => $registerUser]);
+            $response['success'] = true;
+            $response['message'] = "User Registerd successfully";    
+            $response['data'] = $userData[0];
         } else {
-            $response['data']['success'] = false;
-            $response['data']['message'] = "Some Error Occured";    
+            $response['success'] = false;
+            $response['message'] = "Some Error Occured";    
         }
         
         $this->setResponse($response);
@@ -52,7 +53,7 @@ class ApiController {
 
     public function login() {
         $email = isset($_REQUEST['email']) ? trim($_REQUEST['email']) : "";
-        $phone = isset($_REQUEST['number']) ? trim($_REQUEST['number']) : "";
+        $phone = isset($_REQUEST['phone']) ? trim($_REQUEST['phone']) : "";
         $password = isset($_REQUEST['password']) ? trim($_REQUEST['password']) : "";
         $isSuccess = false;
         $responseMsg = "You are not registerd";
@@ -70,8 +71,8 @@ class ApiController {
             }
         }
 
-        $response['data']['success'] = $isSuccess;
-        $response['data']['message'] = $responseMsg;
+        $response['success'] = $isSuccess;
+        $response['message'] = $responseMsg;
         $this->setResponse($response);
         
     }
@@ -89,8 +90,8 @@ class ApiController {
         if ($message == 'MISSING_PARAM'){
             $message = "Something Went Wrong in Parameters";
         }
-        $returnArr['data']['success'] = false;
-        $returnArr['data']['message'] = $message;
+        $returnArr['success'] = false;
+        $returnArr['message'] = $message;
         
         $this->setResponse($returnArr);
     }
@@ -98,11 +99,11 @@ class ApiController {
     public function getServiceList() {
     	$serviceList = $this->apiFunctions->getDataFromDb('*', 'service_list', ['parentId' => 0,'service_status' => 1]);
         if (! empty($serviceList)){
-            $result['data']['success'] = true;
-            $result['data']['message'] = $serviceList;
+            $result['success'] = true;
+            $result['message'] = $serviceList;
         } else {
-            $result['data']['success'] = false;
-            $result['data']['message'] = 'Sorry No Service found.';
+            $result['success'] = false;
+            $result['message'] = 'Sorry No Service found.';
         }
         $this->setResponse($result);
     }
@@ -115,11 +116,11 @@ class ApiController {
         ];
         $serviceList = $this->apiFunctions->getDataFromDb('*', 'service_list', $where);
         if (!empty($serviceList)) {
-            $result['data']['success'] = true;
-            $result['data']['message'] = $serviceList;
+            $result['success'] = true;
+            $result['message'] = $serviceList;
         } else {
-            $result['data']['success'] = false;
-            $result['data']['message'] = 'Sorry No Sub Service found.';
+            $result['success'] = false;
+            $result['message'] = 'Sorry No Sub Service found.';
         }
         $this->setResponse($result);
     }
@@ -130,11 +131,11 @@ class ApiController {
 
         $insertData = $this->apiFunctions->addDataToDb('service_list', $data);
         if ($insertData) {
-            $result['data']['success'] = true;
-            $result['data']['message'] = "Service ".$data['service_name']." is created";
+            $result['success'] = true;
+            $result['message'] = "Service ".$data['service_name']." is created";
         } else {
-            $result['data']['success'] = false;
-            $result['data']['message'] = "An unknown error occured in adding service";
+            $result['success'] = false;
+            $result['message'] = "An unknown error occured in adding service";
         }
         $this->setResponse($result);
     }
@@ -159,11 +160,11 @@ class ApiController {
         $op = $this->apiFunctions->updateDataToDb('service_list', ['service_status' => $activeStatus], ['id' => $serviceId]);
 
         if ($op) {
-            $result['data']['success'] = true;
-            $result['data']['message'] = "Service is now ". $serviceMessage;
+            $result['success'] = true;
+            $result['message'] = "Service is now ". $serviceMessage;
         } else {
-            $result['data']['success'] = false;
-            $result['data']['message'] = "An unknown error occured";
+            $result['success'] = false;
+            $result['message'] = "An unknown error occured";
         }
 
         $this->setResponse($result);
@@ -173,11 +174,11 @@ class ApiController {
         $op = $this->apiFunctions->getServiceeProvider($serviceId, $subServiceId);
         
         if (! empty($op)) {
-            $result['data']['success'] = true;
-            $result['data']['message'] = $op;
+            $result['success'] = true;
+            $result['message'] = $op;
         } else {
-            $result['data']['success'] = false;
-            $result['data']['message'] = "No Service Provider found";
+            $result['success'] = false;
+            $result['message'] = "No Service Provider found";
         }
 
         $this->setResponse($result);
