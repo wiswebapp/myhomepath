@@ -17,6 +17,18 @@ switch ($request) {
 		$apiController->login();
 		break;
 
+	case 'getCategory':
+		$apiController->getCategoryList();
+		break;
+
+	case 'addCategory':
+		$apiController->addCategoryList();
+		break;
+
+	case 'editCategory':
+		$apiController->editCategoryList();
+		break;
+
 	default:
 		$apiController->sessionOut('Required parameter missing');
 		break;

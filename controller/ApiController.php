@@ -13,9 +13,18 @@ class ApiController {
 
     public function isAuthorized($request) {
         $unAuthoriedCalls = ['login', 'register'];
-        
+        $requestMethod = $_SERVER['REQUEST_METHOD'];
+        if($requestMethod != "POST") {
+            $this->sessionOut('Invalid Method Use');
+        }
+
         if(empty($request) || ! in_array($request, $unAuthoriedCalls)) {
-            $this->sessionOut('Required parameter missing');
+            $token = isset($_REQUEST['token']) ? $_REQUEST['token'] : "";
+            $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+            $checkUserLogin = $this->apiFunctions->checkUserAuthenticationWithToken($user, $token);
+            if(! $checkUserLogin ) {
+                $this->sessionOut('Required parameter missing');
+            }
         }
     }
 
@@ -62,26 +71,29 @@ class ApiController {
             $verifyUser = $this->apiFunctions->verifyUser($email, $phone, $password);
             $isSuccess = false;
             $message = "Invalid Username / Password";
-            //print_r($verifyUser);exit;
+            
             if($verifyUser) {
+                $where = ['id' => $verifyUser['id']];
+                $this->apiFunctions->updateDataToDb('med_users', ['isLogin' => 'Yes'], $where);
+                $this->apiFunctions->createAccessToken($verifyUser['id']);
+                $data = $this->apiFunctions->getDataFromDb('*', 'med_users', $where);
                 $isSuccess = true;
                 $responseMsg = "Login Success";
-                $response['data'] = $verifyUser;
-                $response['data']['accessToken'] = $this->apiFunctions->createAccessToken($verifyUser['id']);
+                $response['data'] = $data;
             }
         }
 
         $response['success'] = $isSuccess;
         $response['message'] = $responseMsg;
         $this->setResponse($response);
-        
     }
 
     public function setResponse($response) {
         $response['API_VERSION'] = "1.0";
         $response['API_HASH'] = MD5("asdjh37rfy93yfh9wy9f3f3uyrh73r");
         
-        echo json_encode($response);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_PRETTY_PRINT);
         exit;
     }
 
@@ -96,14 +108,87 @@ class ApiController {
         $this->setResponse($returnArr);
     }
 
-    public function getServiceList() {
-    	$serviceList = $this->apiFunctions->getDataFromDb('*', 'service_list', ['parentId' => 0,'service_status' => 1]);
-        if (! empty($serviceList)){
+    public function getCategoryList() {
+        $where = [
+            'parent_id' => 0,
+            'status' => 'Active',
+            'deleted_at IS' => null
+        ];
+    	$catList = $this->apiFunctions->getDataFromDb('*', 'categories', $where);
+        if (! empty($catList)){
             $result['success'] = true;
-            $result['message'] = $serviceList;
+            $result['data'] = $catList;
+            $result['message'] = count($catList) . " Category Found";
         } else {
             $result['success'] = false;
-            $result['message'] = 'Sorry No Service found.';
+            $result['message'] = 'Sorry No Category found.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function addCategoryList(){
+        $name = isset($_REQUEST['name']) ? $_REQUEST['name'] : "";
+        
+        if(empty($name)) {
+            $result['success'] = false;
+            $result['message'] = 'Please add Category name';
+            $this->setResponse($result);
+        }
+
+        $data = ['category_name' => $name,'deleted_at IS' => null];
+        $checkData = $this->apiFunctions->getDataFromDb('*', 'categories', $data,'id DESC',1);
+        if(count($checkData) > 0) {
+            $result['success'] = false;
+            $result['message'] = 'Category name '. $name .' already exist';
+            $this->setResponse($result);
+        }
+
+        $data = ['category_name' => $name];
+        $addToDB = $this->apiFunctions->addDataToDb('categories', $data);
+        if (! empty($addToDB)){
+            $result['success'] = true;
+            $result['data'] = $catList = $this->apiFunctions->getDataFromDb('*', 'categories', ['id' => $addToDB]);
+            $result['message'] = "Category Added successfully !";
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry No Category found.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function editCategoryList(){
+        $name = isset($_REQUEST['name']) ? $_REQUEST['name'] : "";
+        $id = isset($_REQUEST['id']) ? $_REQUEST['id'] : "";
+        
+        if(empty($name) || empty($id)) {
+            $result['success'] = false;
+            $result['message'] = 'Please add Category name';
+            $this->setResponse($result);
+        }
+
+        $data = ['id' => $id];
+        $checkData = $this->apiFunctions->getDataFromDb('*', 'categories', $data,'id DESC',1);
+        if( empty($checkData)) {
+            $result['success'] = false;
+            $result['message'] = 'No categorie found';
+            $this->setResponse($result);
+        }
+        
+        if($checkData[0]['category_name'] == $name) {
+            $result['success'] = true;
+            $result['message'] = 'No Changes made';
+            $this->setResponse($result);
+        }
+
+        $data = ['category_name' => $name];
+        $addToDB = $this->apiFunctions->updateDataToDb('categories', $data, ['id' => $id]);
+        if (! empty($addToDB)){
+            $result['success'] = true;
+            $result['data'] = $catList = $this->apiFunctions->getDataFromDb('*', 'categories', ['id' => $id]);
+            $result['message'] = "Category Updated successfully !";
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry some error occured.';
         }
         $this->setResponse($result);
     }
