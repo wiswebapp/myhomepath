@@ -25,6 +25,14 @@ switch ($request) {
 		$apiController->addCategoryList();
 		break;
 
+	case 'getProduct':
+		$apiController->getProductList();
+		break;
+
+	case 'addToCart':
+		$apiController->addToCart();
+		break;
+
 	case 'editCategory':
 		$apiController->editCategoryList();
 		break;

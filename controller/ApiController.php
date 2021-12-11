@@ -79,7 +79,7 @@ class ApiController {
                 $data = $this->apiFunctions->getDataFromDb('*', 'med_users', $where);
                 $isSuccess = true;
                 $responseMsg = "Login Success";
-                $response['data'] = $data;
+                $response['data'] = $data[0];
             }
         }
 
@@ -93,7 +93,7 @@ class ApiController {
         $response['API_HASH'] = MD5("asdjh37rfy93yfh9wy9f3f3uyrh73r");
         
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($response, JSON_PRETTY_PRINT);
+        echo json_encode($response);
         exit;
     }
 
@@ -106,6 +106,24 @@ class ApiController {
         $returnArr['message'] = $message;
         
         $this->setResponse($returnArr);
+    }
+
+    public function getProductList() {
+        $where = [
+            'status' => 'Active',
+            'deleted_at IS' => null,
+            'availblity' => 'Yes',
+        ];
+        $dataList = $this->apiFunctions->getDataFromDb('*', 'products', $where);
+        if (! empty($dataList)){
+            $result['success'] = true;
+            $result['data'] = $dataList;
+            $result['message'] = count($dataList) . " product Found";
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry No product found.';
+        }
+        $this->setResponse($result);
     }
 
     public function getCategoryList() {
@@ -225,18 +243,28 @@ class ApiController {
         $this->setResponse($result);
     }
 
-    public function createServiceProvider($serviceProviderData) {
-        $checkFor = ['name','email','password'];
-        $this->checkForRequired($checkFor, $serviceProviderData);        
-        $result['data'] = $this->apiFunctions->createSP($serviceProviderData);
-        $this->setResponse($result);
-    }
+    public function addToCart() {
+        $productId = isset($_REQUEST['product']) ? $_REQUEST['product'] : "";
+        $type = isset($_REQUEST['type']) ? $_REQUEST['type'] : "add";
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
 
-    public function updateServiceProvider($serviceProviderData) {
-        if (empty($serviceProviderData['id'])) {
-            $this->sessionOut('Data id is required');
+        $dataList = $this->apiFunctions->getDataFromDb('*', 'products', ['id' => $productId]);
+        if (empty($dataList)){
+            $result['success'] = false;
+            $result['message'] = "Product not found";
+            $this->setResponse($result);
         }
-        $result['data'] = $this->apiFunctions->updateSP($serviceProviderData);
+
+        if ($type == "add") {
+            $addToDB = $this->apiFunctions->addDataToDb('user_cart', ['user_id' => $user,'product_id' => $productId]);
+            $result['success'] = true;
+            $result['message'] = "Product added to cart";    
+        } else {
+            $addToDB = $this->apiFunctions->removeDataToDb('user_cart', ['user_id' => $user,'product_id' => $productId]);
+            $result['success'] = true;
+            $result['message'] = "Product removed from cart";    
+        }
+        
         $this->setResponse($result);
     }
 
@@ -250,20 +278,6 @@ class ApiController {
         } else {
             $result['success'] = false;
             $result['message'] = "An unknown error occured";
-        }
-
-        $this->setResponse($result);
-    }
-
-    public function getServiceProvider($serviceId, $subServiceId) {
-        $op = $this->apiFunctions->getServiceeProvider($serviceId, $subServiceId);
-        
-        if (! empty($op)) {
-            $result['success'] = true;
-            $result['message'] = $op;
-        } else {
-            $result['success'] = false;
-            $result['message'] = "No Service Provider found";
         }
 
         $this->setResponse($result);
