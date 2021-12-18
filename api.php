@@ -29,6 +29,10 @@ switch ($request) {
 		$apiController->getProductList();
 		break;
 
+	case 'listCart':
+		$apiController->listCart();
+		break;
+
 	case 'addToCart':
 		$apiController->addToCart();
 		break;

@@ -114,7 +114,7 @@ class ApiController {
             'deleted_at IS' => null,
             'availblity' => 'Yes',
         ];
-        $dataList = $this->apiFunctions->getDataFromDb('*', 'products', $where);
+        $dataList = $this->apiFunctions->getProductList();
         if (! empty($dataList)){
             $result['success'] = true;
             $result['data'] = $dataList;
@@ -123,6 +123,32 @@ class ApiController {
             $result['success'] = false;
             $result['message'] = 'Sorry No product found.';
         }
+        $this->setResponse($result);
+    }
+
+    public function listCart(){
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        
+        $where = ['user_id' => $user];
+        $cartList = $this->apiFunctions->getDataFromDb('*', 'user_cart', $where);
+        if(! empty($cartList)) {
+            $i=0;
+            foreach($cartList as $cartItem) {
+                $product = $cartItem['product_id'];
+                $field = "id,category_id,product_name,price";
+                $productData = $this->apiFunctions->getDataFromDb($field, 'products', ['id' => $product]);
+                $cartList[$i++] = $productData[0]; 
+            }
+            //echo "<pre>";print_r($cartList);exit;
+            $result['success'] = true;
+            $result['message'] = count($cartList) . ' product found in cart';
+            $result['data'] = $cartList;
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Your cart is empty';
+            $result['data'] = [];
+        }
+
         $this->setResponse($result);
     }
 

@@ -126,11 +126,28 @@ class ApiFunctions
         return $result;
     }
 
+    public function getProductList(){
+        $result = [];
+
+        $query = "SELECT pro.*,cat.category_name FROM `products` pro 
+        LEFT JOIN categories cat ON pro.category_id = cat.id
+        WHERE pro.status = 'Active' AND pro.availblity = 'Yes'";
+        $response = $this->conn->query($query);
+        $count = $response->num_rows;
+        if($count > 0) {
+            while($row = $response->fetch_assoc()) {
+                $result[] = $row;        
+            }
+        }
+
+        return $result;
+    }
+
     public function checkUserExist($email = "", $phone = "") {
         $query = "SELECT * FROM `med_users` WHERE isActive = 'Yes' AND (email = '".$email."' || phone = '".$phone."')";
         $runQ = $this->conn->query($query);
-        $reponse = $runQ->num_rows;
-        if($reponse > 0) {
+        $response = $runQ->num_rows;
+        if($response > 0) {
             return true;
         }
 
