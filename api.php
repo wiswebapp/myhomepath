@@ -29,6 +29,10 @@ switch ($request) {
 		$apiController->getProductList();
 		break;
 
+	case 'getSingleProduct':
+		$apiController->getSingleProduct();
+		break;
+
 	case 'listCart':
 		$apiController->listCart();
 		break;
@@ -39,6 +43,22 @@ switch ($request) {
 
 	case 'editCategory':
 		$apiController->editCategoryList();
+		break;
+
+	case 'listAddress':
+		$apiController->listAddress();
+		break;
+
+	case 'addAddress':
+		$apiController->addAddress();
+		break;
+
+	case 'updateAddress':
+		$apiController->updateAddress();
+		break;
+
+	case 'deleteAddress':
+		$apiController->deleteAddress();
 		break;
 
 	default:

@@ -126,12 +126,16 @@ class ApiFunctions
         return $result;
     }
 
-    public function getProductList(){
+    public function getProductList($productId = ''){
         $result = [];
+
+        if(! empty($productId)) {
+            $where = "AND pro.id = ". $productId;
+        }
 
         $query = "SELECT pro.*,cat.category_name FROM `products` pro 
         LEFT JOIN categories cat ON pro.category_id = cat.id
-        WHERE pro.status = 'Active' AND pro.availblity = 'Yes'";
+        WHERE pro.status = 'Active' AND pro.availblity = 'Yes' ".$where." ORDER BY pro.updated_at DESC";
         $response = $this->conn->query($query);
         $count = $response->num_rows;
         if($count > 0) {

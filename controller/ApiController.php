@@ -126,6 +126,137 @@ class ApiController {
         $this->setResponse($result);
     }
 
+    public function getSingleProduct(){
+        $productId = isset($_REQUEST['product']) ? $_REQUEST['product'] : "";
+        
+        $product = $this->apiFunctions->getProductList($productId);
+        if (! empty($product)){
+            $result['success'] = true;
+            $result['data'] = $product[0];
+            $result['message'] = "1 product Found";
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry No product found.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function addAddress(){
+        $data['phone_no'] = isset($_REQUEST['phoneNo']) ? $_REQUEST['phoneNo'] : "";
+        $data['address'] = isset($_REQUEST['address']) ? $_REQUEST['address'] : "";
+        $data['locality'] = isset($_REQUEST['locality']) ? $_REQUEST['locality'] : "";
+        $data['landmark'] = isset($_REQUEST['landmark']) ? $_REQUEST['landmark'] : "";
+        $data['city'] = isset($_REQUEST['city']) ? $_REQUEST['city'] : "";
+        $data['pincode'] = isset($_REQUEST['pincode']) ? $_REQUEST['pincode'] : "";
+        $data['address_type'] = isset($_REQUEST['address_type']) ? $_REQUEST['address_type'] : "";
+        $data['user_id'] = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+
+        if( empty($data['user_id']) 
+            || empty($data['address']) 
+            || empty($data['locality']) 
+            || empty($data['city']) 
+            || empty($data['pincode']))
+        {
+            $result['success'] = false;
+            $result['message'] = 'Sorry all fields required';
+            $this->setResponse($result);
+        }
+        
+        $addToDB = $this->apiFunctions->addDataToDb('user_address', $data);
+        if (! empty($addToDB)){
+            $result['success'] = true;
+            $result['message'] = "Address Added successfully !";
+            $result['data'] = $catList = $this->apiFunctions->getDataFromDb('*', 'user_address', ['id' => $addToDB]);
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry Failed to address.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function updateAddress(){
+        $addressId = isset($_REQUEST['addressId']) ? $_REQUEST['addressId'] : "";
+        $data['user_id'] = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        if( empty($data['user_id']) || empty($addressId)) {
+            $result['success'] = false;
+            $result['message'] = 'Sorry all fields required.';
+            $this->setResponse($result);
+        }
+        $oldAddress = $this->apiFunctions->getDataFromDb('*', 'user_address', ['id' => $addressId]);
+        $data['phone_no'] = isset($_REQUEST['phoneNo']) ? $_REQUEST['phoneNo'] : $oldAddress[0]['phone_no'];
+        $data['address'] = isset($_REQUEST['address']) ? $_REQUEST['address'] : $oldAddress[0]['address'];
+        $data['locality'] = isset($_REQUEST['locality']) ? $_REQUEST['locality'] : $oldAddress[0]['locality'];
+        $data['landmark'] = isset($_REQUEST['landmark']) ? $_REQUEST['landmark'] : $oldAddress[0]['landmark'];
+        $data['city'] = isset($_REQUEST['city']) ? $_REQUEST['city'] : $oldAddress[0]['city'];
+        $data['pincode'] = isset($_REQUEST['pincode']) ? $_REQUEST['pincode'] : $oldAddress[0]['pincode'];
+        $data['address_type'] = isset($_REQUEST['address_type']) ? $_REQUEST['address_type'] : $oldAddress[0]['address_type'];
+
+        
+        
+        $addToDB = $this->apiFunctions->updateDataToDb('user_address', $data, ['id' => $addressId]);
+        if (! empty($addToDB)){
+            $result['success'] = true;
+            $result['message'] = "Address Updated successfully !";
+            $result['data'] = $catList = $oldAddress;
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry Failed to address.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function listAddress()
+    {
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+
+        $addressData = $this->apiFunctions->getDataFromDb('*', 'user_address', [
+            'user_id' => $user, 
+            'status' => 'Active'
+        ]);
+        if (! empty($addressData)){
+            $result['success'] = true;
+            $result['data'] = $addressData;
+            $result['message'] = "1 product Found";
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry No Address found.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function deleteAddress(){
+        $addressId = isset($_REQUEST['addressId']) ? $_REQUEST['addressId'] : "";
+        $user_id = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        if( empty($user_id) || empty($addressId)) {
+            $result['success'] = false;
+            $result['message'] = 'Sorry all fields required.';
+            $this->setResponse($result);
+        }
+
+        $addressData = $this->apiFunctions->getDataFromDb('*', 'user_address', ['user_id' => $user_id,'id' => $addressId]);
+        if (! empty($addressData)){
+            $remove = $this->apiFunctions->removeDataToDb('user_address', ['user_id' => $user_id, 'id' => $addressId]);
+            if($remove) {
+                $result['success'] = true;
+                $result['message'] = "Address removed successfully.";
+            } else {
+                $result['success'] = true;
+                $result['message'] = "Unknown Error Occured .!";
+            }
+        } else {
+            $result['success'] = false;
+            $result['message'] = 'Sorry No Address found.';
+        }
+        $this->setResponse($result);
+    }
+
+    public function placeOrder(){
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        $productArr = isset($_REQUEST['product']) ? json_decode($_REQUEST['product'], TRUE) : "";
+        
+
+    }
+
     public function listCart(){
         $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
         
