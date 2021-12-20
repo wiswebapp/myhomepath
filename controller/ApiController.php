@@ -319,8 +319,9 @@ class ApiController {
 
     public function listOrder(){
         $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
-
-        $orderData = $this->apiFunctions->getListOfOrder($user);
+        $flag = isset($_REQUEST['flag']) ? $_REQUEST['flag'] : 0;
+        
+        $orderData = $this->apiFunctions->getListOfOrder($user, $flag);
         if(! empty($orderData)) {
             $result['success'] = true;
             $result['message'] = count($orderData) . " Order found";
