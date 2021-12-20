@@ -147,6 +147,33 @@ class ApiFunctions
         return $result;
     }
 
+    /**
+     * int @userId User Id
+     * int @flag 0 => All Status
+    */
+    public function getListOfOrder($userId, $flag = 0) {
+        $result = [];
+        $orderStatusQ = "";
+
+        if($flag != 0) {
+            $orderStatusQ = " AND order_status = '". $flag. "' ";
+        }
+
+        $query = "SELECT * FROM orders WHERE user_id = $userId $orderStatusQ ";
+        $response = $this->conn->query($query);
+        $count = $response->num_rows;
+        if($count > 0) {
+            while($row = $response->fetch_assoc()) {
+                $row['productList'] = $this->getDataFromDb('*', 'order_details', ['order_id' => $row['order_id']]);
+                $address = json_decode($row['productList'][0]['order_address'], TRUE);
+                $row['address'] = $address['address']. "," .$address['locality']. "," .$address['landmark']. "," .$address['city']. "," .$address['pincode'];
+                $result[] = $row;
+            }
+        }
+
+        return $result;   
+    }
+
     public function checkUserExist($email = "", $phone = "") {
         $query = "SELECT * FROM `med_users` WHERE isActive = 'Yes' AND (email = '".$email."' || phone = '".$phone."')";
         $runQ = $this->conn->query($query);

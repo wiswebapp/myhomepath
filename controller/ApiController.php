@@ -251,10 +251,86 @@ class ApiController {
     }
 
     public function placeOrder(){
+        $grandTotal = 0;
+        $orderId = "ORDER".date('dmyhis') . "_" .rand(10,99);
         $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        $user_address = isset($_REQUEST['user_address']) ? $_REQUEST['user_address'] : "";
         $productArr = isset($_REQUEST['product']) ? json_decode($_REQUEST['product'], TRUE) : "";
         
+        if( empty($productArr) || empty($user_address)) {
+            $result['success'] = true;
+            $result['message'] = "Unknown Error Occured .!";
+            $this->setResponse($result);
+        }
 
+        $orderDetailStatus = true;
+        foreach($productArr as $product) {
+            $productId = $product['id'];
+
+            $addressData = $this->apiFunctions->getDataFromDb('*', 'user_address', ['id' => $user_address]);
+            $getProduct = $this->apiFunctions->getDataFromDb('*', 'products', [
+                'id' => $productId, 
+                'availblity' => 'Yes',
+                'status' => 'Active',
+            ]);
+
+            if( empty($getProduct)) {
+                $result['success'] = true;
+                $result['message'] = "Unknown Error Occured .!";
+                $this->setResponse($result);
+            }
+
+            $grandTotal = $grandTotal + $product['price'];
+            //Add data to order details
+            $orderArr['order_id'] = $orderId;
+            $orderArr['category_id'] = $product['category_id'];
+            $orderArr['product_id'] = $product['id'];
+            $orderArr['product_name'] = $product['product_name'];
+            $orderArr['product_price'] = $product['price'];
+            $orderArr['quantity'] = 1;
+            $orderArr['order_price'] = ($orderArr['product_price'] * $orderArr['quantity']);
+            $orderArr['order_address'] = json_encode($addressData[0]);
+            $insertData = $this->apiFunctions->addDataToDb('order_details', $orderArr);
+            if(! $insertData) {
+                $orderDetailStatus = false;
+            }
+        }
+
+
+        if($orderDetailStatus) {
+            //Generate Order Array
+            $orderTblArr['order_id'] = $orderId;
+            $orderTblArr['user_id'] = $user;
+            $orderTblArr['user_address'] = $user_address;
+            $orderTblArr['order_status'] = 1;
+            $orderTblArr['grand_total'] = $grandTotal;
+            $placeOrder = $this->apiFunctions->addDataToDb('orders', $orderTblArr);
+            if($placeOrder) {
+                $result['success'] = true;
+                $result['message'] = "Order Placed successfully";
+                $this->setResponse($result);
+            }
+        } else {
+            $result['success'] = true;
+            $result['message'] = "Unknown Error Occured while placing order .!";
+            $this->setResponse($result);
+        }
+    }
+
+    public function listOrder(){
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+
+        $orderData = $this->apiFunctions->getListOfOrder($user);
+        if(! empty($orderData)) {
+            $result['success'] = true;
+            $result['message'] = count($orderData) . " Order found";
+            $result['data'] = $orderData[0];
+        } else {
+            $result['success'] = false;
+            $result['message'] = "No Order Data found";
+        }
+        
+        $this->setResponse($result);
     }
 
     public function listCart(){

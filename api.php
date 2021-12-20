@@ -61,6 +61,14 @@ switch ($request) {
 		$apiController->deleteAddress();
 		break;
 
+	case 'placeOrder':
+		$apiController->placeOrder();
+		break;
+
+	case 'listOrder':
+		$apiController->listOrder();
+		break;
+
 	default:
 		$apiController->sessionOut('Required parameter missing');
 		break;
