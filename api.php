@@ -17,12 +17,20 @@ switch ($request) {
 		$apiController->login();
 		break;
 
+	case 'loginAdmin':
+		$apiController->loginAdmin();
+		break;
+
 	case 'getCategory':
 		$apiController->getCategoryList();
 		break;
 
 	case 'addCategory':
 		$apiController->addCategoryList();
+		break;
+
+	case 'addProduct':
+		$apiController->addProduct();
 		break;
 
 	case 'getProduct':
@@ -67,6 +75,14 @@ switch ($request) {
 
 	case 'listOrder':
 		$apiController->listOrder();
+		break;
+
+	case 'changePassword':
+		$apiController->changePassword();
+		break;
+
+	case 'forgetPassword':
+		$apiController->forgetPassword();
 		break;
 
 	default:

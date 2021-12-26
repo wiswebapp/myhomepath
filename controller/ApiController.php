@@ -12,7 +12,7 @@ class ApiController {
     }
 
     public function isAuthorized($request) {
-        $unAuthoriedCalls = ['login', 'register'];
+        $unAuthoriedCalls = ['login', 'register', 'forgetPassword', 'loginAdmin'];
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         if($requestMethod != "POST") {
             $this->sessionOut('Invalid Method Use');
@@ -48,6 +48,8 @@ class ApiController {
 
         $registerUser = $this->apiFunctions->addDataToDb('med_users', $data);
         if($registerUser) {
+            //Generate access token
+            $this->apiFunctions->createAccessToken($registerUser);
             $userData = $this->apiFunctions->getDataFromDb('*', 'med_users', ['id' => $registerUser]);
             $response['success'] = true;
             $response['message'] = "User Registerd successfully";    
@@ -88,6 +90,35 @@ class ApiController {
         $this->setResponse($response);
     }
 
+    public function loginAdmin(){
+        $email = isset($_REQUEST['email']) ? trim($_REQUEST['email']) : "";
+        $phone = isset($_REQUEST['phone']) ? trim($_REQUEST['phone']) : "";
+        $password = isset($_REQUEST['password']) ? trim($_REQUEST['password']) : "";
+        $isSuccess = false;
+        $responseMsg = "You are not registerd";
+
+        $userExist = $this->apiFunctions->checkUserExist($email, $phone, 'Admin');
+        if($userExist) {
+            $verifyUser = $this->apiFunctions->verifyUser($email, $phone, $password);
+            $isSuccess = false;
+            $message = "Invalid Username / Password";
+            
+            if($verifyUser) {
+                $where = ['id' => $verifyUser['id']];
+                $this->apiFunctions->updateDataToDb('med_users', ['isLogin' => 'Yes'], $where);
+                $this->apiFunctions->createAccessToken($verifyUser['id']);
+                $data = $this->apiFunctions->getDataFromDb('*', 'med_users', $where);
+                $isSuccess = true;
+                $responseMsg = "Login Success";
+                $response['data'] = $data[0];
+            }
+        }
+
+        $response['success'] = $isSuccess;
+        $response['message'] = $responseMsg;
+        $this->setResponse($response);
+    }
+
     public function setResponse($response) {
         $response['API_VERSION'] = "1.0";
         $response['API_HASH'] = MD5("asdjh37rfy93yfh9wy9f3f3uyrh73r");
@@ -105,6 +136,41 @@ class ApiController {
         $returnArr['success'] = false;
         $returnArr['message'] = $message;
         
+        $this->setResponse($returnArr);
+    }
+
+    public function addProduct() {
+        $data['user_id'] = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        $data['category_id'] = isset($_REQUEST['categoryId']) ? $_REQUEST['categoryId'] : "";
+        $data['product_name'] = isset($_REQUEST['productName']) ? $_REQUEST['productName'] : "";
+        $data['product_description'] = isset($_REQUEST['description']) ? $_REQUEST['description'] : "";
+        $data['price'] = isset($_REQUEST['price']) ? $_REQUEST['price'] : "";
+        $data['availblity'] = isset($_REQUEST['availblity']) ? $_REQUEST['availblity'] : "Yes";
+        //$data['productImage'] = isset($_REQUEST['productImage']) ? $_REQUEST['productImage'] : "";
+
+        $isAdmin = $this->apiFunctions->isAdmin($data['user_id']);
+        if(! $isAdmin) {
+            $returnArr['success'] = false;
+            $returnArr['message'] = 'You are not authorized to perform this action';
+            $this->setResponse($returnArr);
+        }
+
+        if (empty($data['category_id']) || empty($data['product_name']) || empty($data['product_description']) || empty($data['price']) ) {
+            $returnArr['success'] = false;
+            $returnArr['message'] = "Required parameter for product add missing .!";
+            $this->setResponse($returnArr);
+        }
+
+        $addProduct = $this->apiFunctions->addDataToDb('products', $data);
+        if($addProduct) {
+            $returnArr['success'] = true;
+            $returnArr['message'] = "Product Added successfully .!";
+            $returnArr['data'] = $this->apiFunctions->getDataFromDb('*','products',['id' => $addProduct]);
+        } else {
+            $returnArr['success'] = false;
+            $returnArr['message'] = "Failed to add product .!";
+        }
+
         $this->setResponse($returnArr);
     }
 
@@ -306,9 +372,13 @@ class ApiController {
             $orderTblArr['grand_total'] = $grandTotal;
             $placeOrder = $this->apiFunctions->addDataToDb('orders', $orderTblArr);
             if($placeOrder) {
-                $result['success'] = true;
-                $result['message'] = "Order Placed successfully";
-                $this->setResponse($result);
+                //Empty Cart
+                $emptyCart = $this->apiFunctions->removeDataToDb('user_cart', ['user_id' => $user]);
+                if ($emptyCart) {
+                    $result['success'] = true;
+                    $result['message'] = "Order Placed successfully";
+                    $this->setResponse($result);
+                }
             }
         } else {
             $result['success'] = true;
@@ -325,7 +395,7 @@ class ApiController {
         if(! empty($orderData)) {
             $result['success'] = true;
             $result['message'] = count($orderData) . " Order found";
-            $result['data'] = $orderData[0];
+            $result['data'] = $orderData;
         } else {
             $result['success'] = false;
             $result['message'] = "No Order Data found";
@@ -496,9 +566,61 @@ class ApiController {
         } else {
             $addToDB = $this->apiFunctions->removeDataToDb('user_cart', ['user_id' => $user,'product_id' => $productId]);
             $result['success'] = true;
-            $result['message'] = "Product removed from cart";    
+            $result['message'] = "Product removed from cart";
         }
         
+        $this->setResponse($result);
+    }
+
+    public function changePassword(){
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        $oldPassword = isset($_REQUEST['oldPassword']) ? $_REQUEST['oldPassword'] : "";
+        $newPassword = isset($_REQUEST['newPassword']) ? $_REQUEST['newPassword'] : "";
+        $confirmPassword = isset($_REQUEST['confirmPassword']) ? $_REQUEST['confirmPassword'] : "";
+
+        if($newPassword != $confirmPassword) {
+            $result['success'] = false;
+            $result['message'] = "Confirm password failed to match.";
+            $this->setResponse($result);
+        }
+
+        $uData = $this->apiFunctions->getDataFromDb('id', 'med_users', ['password' => MD5($oldPassword),'id' => $user]);
+        if( empty($uData)) {
+            $result['success'] = false;
+            $result['message'] = "Old Password is wrong.";
+            $this->setResponse($result);
+        }
+
+        $updatedData = $this->apiFunctions->updateDataToDb('med_users', ['password' => MD5($newPassword)], ['id' => $user]);
+        $result['success'] = true;
+        $result['message'] = "Password Changed successfully .!";
+        $this->setResponse($result);
+    }
+
+    public function forgetPassword(){
+        $email = isset($_REQUEST['email']) ? $_REQUEST['email'] : "";
+        $phone = isset($_REQUEST['phone']) ? $_REQUEST['phone'] : "";
+
+        if( empty($email) && empty($phone) ) {
+            $result['success'] = false;
+            $result['message'] = "Required parameter missing";
+            $this->setResponse($result);
+        }
+        
+        if (! empty($email)) {
+            $uData = $this->apiFunctions->getDataFromDb('id', 'med_users', ['email' => $email,'isActive' => 'Yes']);
+        } elseif (! empty($phone)) {
+            $uData = $this->apiFunctions->getDataFromDb('id', 'med_users', ['phone' => $phone,'isActive' => 'Yes']);
+        }
+
+        if ( empty($uData)) {
+            $result['success'] = false;
+            $result['message'] = "No User Found with this email.";
+            $this->setResponse($result);
+        }
+
+        $result['success'] = true;
+        $result['message'] = "Reset Password sent successfully .!";
         $this->setResponse($result);
     }
 

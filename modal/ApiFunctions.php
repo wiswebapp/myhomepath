@@ -174,8 +174,9 @@ class ApiFunctions
         return $result;   
     }
 
-    public function checkUserExist($email = "", $phone = "") {
-        $query = "SELECT * FROM `med_users` WHERE isActive = 'Yes' AND (email = '".$email."' || phone = '".$phone."')";
+    public function checkUserExist($email = "", $phone = "", $userType = 'User') {
+
+        $query = "SELECT * FROM `med_users` WHERE userType = '".$userType."' AND isActive = 'Yes' AND (email = '".$email."' || phone = '".$phone."')";
         $runQ = $this->conn->query($query);
         $response = $runQ->num_rows;
         if($response > 0) {
@@ -201,6 +202,21 @@ class ApiFunctions
         $runQ = $this->conn->query($query);
         $reponse = $runQ->num_rows;
         if($reponse > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isAdmin($userId) {
+        $query = "SELECT userType FROM `med_users` WHERE id = '".$userId."' ";
+        $runQ = $this->conn->query($query);
+        $reponse = $runQ->num_rows;
+        if($reponse > 0 && $data = $runQ->fetch_array()) {
+            if($data['userType'] == "User") {
+                return false;
+            }
+
             return true;
         }
 
