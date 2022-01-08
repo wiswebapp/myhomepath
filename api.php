@@ -77,6 +77,10 @@ switch ($request) {
 		$apiController->listOrder();
 		break;
 
+	case 'adminOrderList':
+		$apiController->adminOrderList();
+		break;
+
 	case 'changePassword':
 		$apiController->changePassword();
 		break;

@@ -151,15 +151,13 @@ class ApiFunctions
      * int @userId User Id
      * int @flag 0 => All Status
     */
-    public function getListOfOrder($userId, $flag = 0) {
+    public function getListOfOrder($userId = 0, $flag = 0) {
         $result = [];
-        $orderStatusQ = "";
+        
+        $orderStatusQ = ($flag != 0) ? " AND order_status = '". $flag. "' " : "";
+        $userQ = ($userId != 0) ? " AND userId = '". $userId. "' " : "";
 
-        if($flag != 0) {
-            $orderStatusQ = " AND order_status = '". $flag. "' ";
-        }
-
-        $query = "SELECT * FROM orders WHERE user_id = $userId $orderStatusQ ";
+        $query = "SELECT * FROM orders WHERE 1 = 1 $userQ $orderStatusQ ";
         $response = $this->conn->query($query);
         $count = $response->num_rows;
         if($count > 0) {
@@ -172,6 +170,38 @@ class ApiFunctions
         }
 
         return $result;   
+    }
+
+    public function getListOfOrderForAdmin() {
+        $result = [];
+        $overAllCount = 0;
+
+        $placedOrderCount = count($this->getListOfOrder(0, 1));
+        $result['placedOrder'] = $this->getListOfOrder(0, 1);
+        $result['placedOrder']['count'] = $placedOrderCount;
+
+        $acceptedOrderCount = count($this->getListOfOrder(0, 2));
+        $result['acceptedOrder'] = $this->getListOfOrder(0, 2);
+        $result['acceptedOrder']['count'] = $acceptedOrderCount;
+
+        $canceledOrderCount = count($this->getListOfOrder(0, 3));
+        $result['canceledOrder'] = $this->getListOfOrder(0, 3);
+        $result['canceledOrder']['count'] = $canceledOrderCount;
+
+        $deliveredOrderCount = count($this->getListOfOrder(0, 5));
+        $result['deliveredOrder'] = $this->getListOfOrder(0, 5);
+        $result['deliveredOrder']['count'] = $deliveredOrderCount;
+
+        $declinedOrderCount = count($this->getListOfOrder(0, 6));
+        $result['declinedOrder'] = $this->getListOfOrder(0, 6);
+        $result['declinedOrder']['count'] = $declinedOrderCount;
+
+        $overAllCount = ($placedOrderCount + $acceptedOrderCount + $canceledOrderCount + $deliveredOrderCount + $declinedOrderCount);
+        
+        return [
+            'orderData' => $result,
+            'count' => $overAllCount,
+        ];   
     }
 
     public function checkUserExist($email = "", $phone = "", $userType = 'User') {

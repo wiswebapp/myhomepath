@@ -404,6 +404,23 @@ class ApiController {
         $this->setResponse($result);
     }
 
+    public function adminOrderList(){
+        $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+        $flag = isset($_REQUEST['flag']) ? $_REQUEST['flag'] : "";
+        
+        $orderData = $this->apiFunctions->getListOfOrderForAdmin();
+        if(! empty($orderData['orderData'])) {
+            $result['success'] = true;
+            $result['message'] = $orderData['count'] . " Order found";
+            $result['data'] = $orderData['orderData'];
+        } else {
+            $result['success'] = false;
+            $result['message'] = "No Order Data found";
+        }
+        
+        $this->setResponse($result);
+    }
+
     public function listCart(){
         $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
         
