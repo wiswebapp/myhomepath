@@ -77,6 +77,10 @@ switch ($request) {
 		$apiController->listOrder();
 		break;
 
+	case 'adminListOrder':
+		$apiController->listOrder(true);
+		break;
+
 	case 'adminOrderList':
 		$apiController->adminOrderList();
 		break;

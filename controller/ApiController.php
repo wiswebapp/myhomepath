@@ -21,9 +21,13 @@ class ApiController {
         if(empty($request) || ! in_array($request, $unAuthoriedCalls)) {
             $token = isset($_REQUEST['token']) ? $_REQUEST['token'] : "";
             $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+            if(empty($token) || empty($user)) {
+                $this->sessionOut('Required parameter missing');
+            }
+
             $checkUserLogin = $this->apiFunctions->checkUserAuthenticationWithToken($user, $token);
             if(! $checkUserLogin ) {
-                $this->sessionOut('Required parameter missing');
+                $this->sessionOut('Please Login with valid credentials to access this page');
             }
         }
     }
@@ -157,8 +161,28 @@ class ApiController {
 
         if (empty($data['category_id']) || empty($data['product_name']) || empty($data['product_description']) || empty($data['price']) ) {
             $returnArr['success'] = false;
-            $returnArr['message'] = "Required parameter for product add missing .!";
+            $returnArr['message'] = "Required parameter for add product is missing .!";
             $this->setResponse($returnArr);
+        }
+
+        if(!empty($_FILES['productImg'])) {
+            $path = "webimages/productImage/";
+            //$path = $path . basename( $_FILES['productImg']['name']);
+            $ext = pathinfo(basename( $_FILES['productImg']['name']), PATHINFO_EXTENSION);
+            $validExt = ['jpeg', 'jpg', 'png'];
+            if(! in_array($ext, $validExt)) {
+                $returnArr['success'] = false;
+                $returnArr['message'] = "Only JPG & PNG Allowed for product image";
+                $this->setResponse($returnArr);
+            }
+
+            $newFileName = "PRODUCT_".date('Ymdhis') . "." . $ext;
+            $path = $path . $newFileName;
+
+            $uploadFile = move_uploaded_file($_FILES['productImg']['tmp_name'], $path);
+            if($uploadFile) {
+              $data['product_image'] = $newFileName;
+            }
         }
 
         $addProduct = $this->apiFunctions->addDataToDb('products', $data);
@@ -387,10 +411,13 @@ class ApiController {
         }
     }
 
-    public function listOrder(){
+    public function listOrder($isAdmin = false){
         $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
         $flag = isset($_REQUEST['flag']) ? $_REQUEST['flag'] : 0;
         
+        if($isAdmin) {
+            $user = 0;
+        }
         $orderData = $this->apiFunctions->getListOfOrder($user, $flag);
         if(! empty($orderData)) {
             $result['success'] = true;
@@ -409,10 +436,10 @@ class ApiController {
         $flag = isset($_REQUEST['flag']) ? $_REQUEST['flag'] : "";
         
         $orderData = $this->apiFunctions->getListOfOrderForAdmin();
-        if(! empty($orderData['orderData'])) {
+        if(! empty($orderData)) {
             $result['success'] = true;
-            $result['message'] = $orderData['count'] . " Order found";
-            $result['data'] = $orderData['orderData'];
+            $result['message'] = "";
+            $result['data'] = $orderData;
         } else {
             $result['success'] = false;
             $result['message'] = "No Order Data found";

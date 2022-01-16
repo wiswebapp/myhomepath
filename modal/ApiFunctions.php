@@ -128,6 +128,7 @@ class ApiFunctions
 
     public function getProductList($productId = ''){
         $result = [];
+        $where = "";
 
         if(! empty($productId)) {
             $where = "AND pro.id = ". $productId;
@@ -136,10 +137,15 @@ class ApiFunctions
         $query = "SELECT pro.*,cat.category_name FROM `products` pro 
         LEFT JOIN categories cat ON pro.category_id = cat.id
         WHERE pro.status = 'Active' AND pro.availblity = 'Yes' ".$where." ORDER BY pro.updated_at DESC";
+
         $response = $this->conn->query($query);
         $count = $response->num_rows;
         if($count > 0) {
             while($row = $response->fetch_assoc()) {
+                if(! empty($row['product_image'])) {
+                    $productImage = BASE_URL . "/webimages/productImage/" . $row['product_image'];
+                    $row['product_image'] = $productImage;
+                }
                 $result[] = $row;        
             }
         }
@@ -178,23 +184,18 @@ class ApiFunctions
 
         $placedOrderCount = count($this->getListOfOrder(0, 1));
         $result['placedOrder'] = $this->getListOfOrder(0, 1);
-        $result['placedOrder']['count'] = $placedOrderCount;
 
         $acceptedOrderCount = count($this->getListOfOrder(0, 2));
         $result['acceptedOrder'] = $this->getListOfOrder(0, 2);
-        $result['acceptedOrder']['count'] = $acceptedOrderCount;
 
         $canceledOrderCount = count($this->getListOfOrder(0, 3));
         $result['canceledOrder'] = $this->getListOfOrder(0, 3);
-        $result['canceledOrder']['count'] = $canceledOrderCount;
 
         $deliveredOrderCount = count($this->getListOfOrder(0, 5));
         $result['deliveredOrder'] = $this->getListOfOrder(0, 5);
-        $result['deliveredOrder']['count'] = $deliveredOrderCount;
 
         $declinedOrderCount = count($this->getListOfOrder(0, 6));
         $result['declinedOrder'] = $this->getListOfOrder(0, 6);
-        $result['declinedOrder']['count'] = $declinedOrderCount;
 
         $overAllCount = ($placedOrderCount + $acceptedOrderCount + $canceledOrderCount + $deliveredOrderCount + $declinedOrderCount);
         
