@@ -9,7 +9,7 @@
   
   $countAll = ($data['totalAllData'] > 0) ? $data['totalAllData'] : 0;
   $multipage = empty($this->uri->segment(4)) ? 0 : $this->uri->segment(4);
-
+	//echo "<pre>";print_r($pageData);exit;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -65,9 +65,9 @@
                           <table width="100%" cellpadding="1" border="0">
                             <tr>
                               <th>Filter by : </th>
-                              <th><input class="form-control" type="date" name="fromdate" placeholder="From Date" value="<?=trim($_GET['fromdate'])?>"></th>
-                              <th><input class="form-control" type="date" name="todate" placeholder="To Date" value="<?=trim($_GET['todate'])?>"></th>
-                              <th><input class="form-control" type="text" name="orderid" placeholder="OrderId Number" value="<?=trim($_GET['orderid'])?>"></th>
+                              <th><input class="form-control" type="date" name="fromdate" placeholder="From Date" value="<?=trim(@$_GET['fromdate'])?>"></th>
+                              <th><input class="form-control" type="date" name="todate" placeholder="To Date" value="<?=trim(@$_GET['todate'])?>"></th>
+                              <th><input class="form-control" type="text" name="orderid" placeholder="OrderId Number" value="<?=trim(@$_GET['orderid'])?>"></th>
                               <th>
                                  <button type="submit" class="btn btn-primary">Search</button>
                               </th>
@@ -102,8 +102,9 @@
                                       <th>User name</th>
                                       <th>Provider Name</th>
                                       <th>Product Name</th>
-                                      <th>Amount</th>
-                                      <th>Status</th>
+                                      <th>Total Amt.</th>
+                                      <th>Order Status</th>
+                                      <th>Action</th>
                                     </tr>
                                   </thead>
                                   <tbody id="_data_rows">
@@ -112,28 +113,36 @@
 
                                         for ($i=0; $i < $count ; $i++) {
 
-                                          $userIdd = $pageData[$i]['iUserId'];
-                                          $orgStts = $pageData[$i]['eStatus'];
-                                          if($orgStts == 'Completed'){
-                                            $status = "<span class='badge badge-success'>$orgStts</span>";
-                                          }elseif($pageData[$i]['eStatus'] == 'Failed'){
-                                            $status = "<span class='badge badge-danger'>$orgStts</span>";
-                                          }else{
-                                            $status = "<span class='badge badge-warning'>$orgStts</span>";
+                                          $userIdd = $pageData[$i]['user_id'];
+                                          $status = $pageData[$i]['order_status'];
+                                          if($status == 5){
+                                            $status = "<span class='badge badge-success'>Delivered</span>";
+                                          }elseif($status == 3 || $status == 4 || $status == 6){
+                                            $status = "<span class='badge badge-danger'>Cancelled</span>";
+                                          }elseif($status == 1){//delivered
+                                            $status = "<span class='badge badge-info'>Placed</span>";
+                                          }elseif($status == 2){//delivered
+                                            $status = "<span class='badge badge-info'>Accepted By Admin	</span>";
                                           }
                                     ?>
                                     <tr>
-                                      <td><?=toDate($pageData[$i]['createdDateTime'],'d-m-Y (h:i A)')?></td>
-                                      <td>#<?=$pageData[$i]['vOrderId']?></td>
-                                      <td><?=$pageData[$i]['CustName']?></td>
-                                      <td><?=$pageData[$i]['ProviderNm']?></td>
-                                      <td><?=$pageData[$i]['ProductName']?></td>
-                                      <td><?=toDecimalPoint($pageData[$i]['iFare'])?> ₹</td>
+                                      <td><?=toDate($pageData[$i]['created_at'],'d-M-Y')?></td>
+                                      <td>#<?=$pageData[$i]['order_id']?></td>
+                                      <td><?=$pageData[$i]['UserName']?></td>
+                                      <td><?=$pageData[$i]['UserPhone'] ." (". $pageData[$i]['UserEmail'] . ")"?></td>
+                                      <td>
+																				<ul>
+																					<?php if( count($pageData[$i]['details']) > 0):
+																					foreach($pageData[$i]['details'] as $p):?>
+																					<li><?=$p['product_name'] ." X ".$p['quantity']?></li>
+																					<?php endforeach;endif ?>
+																				</ul>
+																			</td>
+                                      <td><?=toDecimalPoint($pageData[$i]['grand_total'])?> ₹</td>
                                       <td><?=$status?></td>
-                                      <!-- <td>
-                                        <a data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit Data" class="btn btn-sm btn-default" href="<?=$editDataUrl.'/'.$userIdd?>"><i class="fa fa-edit"></i></a>
-                                        <span data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Data" class="btn btn-sm btn-default" onclick="changeUserStatus(3,<?=$userIdd?>,'<?=$table?>')"><i class="fa fa-trash"></i></span>
-                                      </td> -->
+                                      <td>
+                                        <a data-toggle="tooltip" data-placement="top" title="" data-original-title="View Order" class="btn btn-sm btn-default" href=""></i> View</a>
+                                      </td>
                                     </tr>
                                     <?php } else: ?>
                                     <tr>

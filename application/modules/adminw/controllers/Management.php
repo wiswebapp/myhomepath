@@ -19,15 +19,14 @@ class Management extends MY_Controller {
 	public function order_report(){
 
 		$ssql = $sql= "1 = 1";
-		if( !empty(trim($_GET['fromdate'])) && !empty(trim($_GET['todate']))){
-    		$ssql .= " AND DATE(ord.createdDate) BETWEEN '".toDate(trim($_GET['fromdate']),'Y-m-d')."' AND '".toDate(trim($_GET['todate']),'Y-m-d')."'";
+		if(isset($_GET['fromdate']) && isset($_GET['todate']) && !empty(trim($_GET['fromdate'])) && !empty(trim($_GET['todate']))){
+    		$ssql .= " AND DATE(a.created_at) BETWEEN '".toDate(trim($_GET['fromdate']),'Y-m-d')."' AND '".toDate(trim($_GET['todate']),'Y-m-d')."'";
     		//For Get Total Count
-    		$sql .= " AND DATE(createdDate) BETWEEN '".toDate(trim($_GET['fromdate']),'Y-m-d')."' AND '".toDate(trim($_GET['todate']),'Y-m-d')."'";
+    		$sql .= " AND DATE(created_at) BETWEEN '".toDate(trim($_GET['fromdate']),'Y-m-d')."' AND '".toDate(trim($_GET['todate']),'Y-m-d')."'";
     	}
-    	if(!empty(trim($_GET['orderid']))){
-    		$ssql .= " AND ord.vOrderId = '".trim($_GET['orderid'])."'";
-    		//For Get Total Count
-    		$sql .= " AND vOrderId = '".trim($_GET['orderid'])."'";
+    	if(isset($_GET['orderid']) && !empty(trim($_GET['orderid']))){
+    		$ssql .= " AND a.order_id = '".trim($_GET['orderid'])."'";
+    		$sql .= " AND order_id = '".trim($_GET['orderid'])."'";
     	}
     	
 		$offset = !empty($this->uri->segment(4)) ? $this->uri->segment(4) : 0;
@@ -37,7 +36,8 @@ class Management extends MY_Controller {
         $config = $this->configPagination(
         	admin_url('management/order-report'),
         	$this->Common_model->__getdatacount('orders',$sql),
-        	$this->dataLimit,$offset
+        	$this->dataLimit,
+			$offset
         );
 		$this->pagination->initialize($config);
 		$this->load->view('order_report',compact('data'));
