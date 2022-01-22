@@ -23,7 +23,7 @@ class Users extends MY_Controller {
 	/*==========================REGISTER USERS LIST==========================*/
 	public function list(){
 
-		$ssql = " deleted_at IS NULL";
+		$ssql = "userType = 'User' AND deleted_at IS NULL";
 		if(isset($_GET['name']) && ! empty(trim($_GET['name']))){
     		$ssql .= " AND name LIKE '%".trim($_GET['name'])."%' ";
     	}
