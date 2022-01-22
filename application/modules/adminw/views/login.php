@@ -38,7 +38,8 @@
         <?php endif; ?>
         <div class="card ">
             <div class="card-header text-center">
-                <img src="<?=assets('logo.jpg')?>" height="110" width="130" alt="logo">
+                <!-- <img src="<?=assets('logo.jpg')?>" height="110" width="130" alt="logo"> -->
+				<h1>Super Admin Login</h1>
                 <hr style="border: 0">
                 <p>Please Login to continue</p>
             </div>
