@@ -72,6 +72,14 @@ switch ($request) {
 	case 'placeOrder':
 		$apiController->placeOrder();
 		break;
+	
+	case 'acceptOrder':
+		$apiController->acceptOrder();
+		break;
+	
+	case 'declineOrder':
+		$apiController->declineOrder();
+		break;
 
 	case 'listOrder':
 		$apiController->listOrder();
