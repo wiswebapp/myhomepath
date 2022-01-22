@@ -35,7 +35,7 @@ class Management extends MY_Controller {
 		//where while searching
         $config = $this->configPagination(
         	admin_url('management/order-report'),
-        	$this->Common_model->__getdatacount('orders',$sql),
+        	$data['totalAllData'],
         	$this->dataLimit,
 			$offset
         );

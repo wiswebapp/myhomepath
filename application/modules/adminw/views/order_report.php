@@ -104,7 +104,7 @@
                                       <th>Product Name</th>
                                       <th>Total Amt.</th>
                                       <th>Order Status</th>
-                                      <th>Action</th>
+                                      <!-- <th>Action</th> -->
                                     </tr>
                                   </thead>
                                   <tbody id="_data_rows">
@@ -140,9 +140,9 @@
 																			</td>
                                       <td><?=toDecimalPoint($pageData[$i]['grand_total'])?> ₹</td>
                                       <td><?=$status?></td>
-                                      <td>
+                                      <!-- <td>
                                         <a data-toggle="tooltip" data-placement="top" title="" data-original-title="View Order" class="btn btn-sm btn-default" href=""></i> View</a>
-                                      </td>
+                                      </td> -->
                                     </tr>
                                     <?php } else: ?>
                                     <tr>
