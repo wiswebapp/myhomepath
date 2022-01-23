@@ -159,12 +159,12 @@ class ApiFunctions
     */
     public function getListOfOrder($userId = 0, $flag = 0) {
         $result = [];
-        
+
         $orderStatusQ = ($flag != 0) ? " AND order_status = '". $flag. "' " : "";
-        $userQ = ($userId != 0) ? " AND userId = '". $userId. "' " : "";
+        $userQ = ($userId != 0) ? " AND user_id = '". $userId. "' " : "";
 
         $query = "SELECT * FROM orders WHERE 1 = 1 $userQ $orderStatusQ ";
-        $response = $this->conn->query($query);
+		$response = $this->conn->query($query);
         $count = $response->num_rows;
         if($count > 0) {
             while($row = $response->fetch_assoc()) {
