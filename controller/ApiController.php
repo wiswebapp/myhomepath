@@ -499,7 +499,6 @@ class ApiController {
                 $productData = $this->apiFunctions->getDataFromDb($field, 'products', ['id' => $product]);
                 $cartList[$i++] = $productData[0]; 
             }
-            //echo "<pre>";print_r($cartList);exit;
             $result['success'] = true;
             $result['message'] = count($cartList) . ' product found in cart';
             $result['data'] = $cartList;
@@ -511,6 +510,19 @@ class ApiController {
 
         $this->setResponse($result);
     }
+
+	public function getOrderDetail() {
+		$orderId = isset($_REQUEST['orderId']) ? $_REQUEST['orderId'] : "";
+		$result['success'] = false;
+        $result['data'] = "Error while fetching data";
+
+		$orderData = $this->apiFunctions->getOrderDetail($orderId);
+		if(! empty($orderData)) {
+			$result['success'] = true;
+            $result['data'] = $orderData;
+		}
+		$this->setResponse($result);
+	}
 
     public function getCategoryList() {
         $where = [

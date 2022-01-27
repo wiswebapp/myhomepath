@@ -153,6 +153,29 @@ class ApiFunctions
         return $result;
     }
 
+	public function getOrderDetail($orderId) {
+		
+		 $query = "SELECT a.*,b.name AS UserName,b.phone AS UserPhone,b.email AS UserEmail, c.order_message AS OrderStatus FROM `orders` a LEFT JOIN med_users b ON a.user_id = b.id LEFT JOIN order_status c ON a.order_status = c.id WHERE a.order_id = '". $orderId ."' ORDER BY id DESC LIMIT 1";
+		$response = $this->conn->query($query);
+        $count = $response->num_rows;
+        if($count > 0) {
+            $orderData = $response->fetch_object();
+			$orderData = (array)$orderData;
+			//Fetching Order Sub details
+			$orderDetailQ = "SELECT a.product_id,a.product_name,a.product_price,a.quantity,a.order_price,a.created_at,a.order_address,b.category_name AS CategoryName FROM `order_details` a LEFT JOIN categories b ON a.category_id = b.id WHERE a.order_id = '". $orderId ."'";
+			$response = $this->conn->query($orderDetailQ);
+			while($row = $response->fetch_assoc()) {
+				$productArr[] = $row; 
+			}
+			$orderData['details'] = $productArr;
+			//Fetching Order Address
+			$address = json_decode($orderData['details'][0]['order_address'], true);
+			$orderData['address'] = $address;
+			
+			return $orderData;
+		}
+	}
+
     /**
      * int @userId User Id
      * int @flag 0 => All Status
