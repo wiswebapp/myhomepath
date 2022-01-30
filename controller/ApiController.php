@@ -449,6 +449,25 @@ class ApiController {
 		$this->setResponse($result);
 	}
 
+	public function deliverOrder() {
+		$user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+		$orderId = isset($_REQUEST['orderId']) ? $_REQUEST['orderId'] : "";
+		$result['success'] = false;
+		$result['message'] = "Order Deliver failed .!";
+
+		$where = ['order_id' => $orderId, 'order_status' => 1];
+		$orderData = $this->apiFunctions->getDataFromDb('id', 'orders', $where);
+		if( count($orderData) == 1) {
+			$updateStts = $this->apiFunctions->updateDataToDb('orders', ['order_status' => 6], $where);
+			if($updateStts) {
+				$result['success'] = true;
+				$result['message'] = "Order Deliver successfully .!";
+			}
+		}
+
+		$this->setResponse($result);
+	}
+
     public function listOrder($isAdmin = false){
         $user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
         $flag = isset($_REQUEST['flag']) ? $_REQUEST['flag'] : 0;
