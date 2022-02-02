@@ -85,6 +85,10 @@ switch ($request) {
 		$apiController->deliverOrder();
 		break;
 
+	case 'cancelOrder':
+		$apiController->cancelOrder();
+		break;
+
 	case 'listOrder':
 		$apiController->listOrder();
 		break;

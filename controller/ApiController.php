@@ -455,13 +455,32 @@ class ApiController {
 		$result['success'] = false;
 		$result['message'] = "Order Deliver failed .!";
 
-		$where = ['order_id' => $orderId, 'order_status' => 1];
+		$where = ['order_id' => $orderId];
 		$orderData = $this->apiFunctions->getDataFromDb('id', 'orders', $where);
 		if( count($orderData) == 1) {
-			$updateStts = $this->apiFunctions->updateDataToDb('orders', ['order_status' => 6], $where);
+			$updateStts = $this->apiFunctions->updateDataToDb('orders', ['order_status' => 5], $where);
 			if($updateStts) {
 				$result['success'] = true;
 				$result['message'] = "Order Deliver successfully .!";
+			}
+		}
+
+		$this->setResponse($result);
+	}
+
+	public function cancelOrder() {
+		$user = isset($_REQUEST['user']) ? $_REQUEST['user'] : "";
+		$orderId = isset($_REQUEST['orderId']) ? $_REQUEST['orderId'] : "";
+		$result['success'] = false;
+		$result['message'] = "Order Cancelled failed .!";
+
+		$where = ['order_id' => $orderId];
+		$orderData = $this->apiFunctions->getDataFromDb('id', 'orders', $where);
+		if( count($orderData) == 1) {
+			$updateStts = $this->apiFunctions->updateDataToDb('orders', ['order_status' => 3], $where);
+			if($updateStts) {
+				$result['success'] = true;
+				$result['message'] = "Order Cancelled successfully .!";
 			}
 		}
 
