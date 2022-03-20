@@ -186,7 +186,7 @@ class ApiFunctions
         $orderStatusQ = ($flag != 0) ? " AND order_status = '". $flag. "' " : "";
         $userQ = ($userId != 0) ? " AND user_id = '". $userId. "' " : "";
 
-        $query = "SELECT * FROM orders WHERE 1 = 1 $userQ $orderStatusQ ";
+        $query = "SELECT * FROM orders WHERE 1 = 1 $userQ $orderStatusQ ORDER BY id DESC";
 		$response = $this->conn->query($query);
         $count = $response->num_rows;
         if($count > 0) {

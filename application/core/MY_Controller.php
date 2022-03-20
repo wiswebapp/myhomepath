@@ -33,18 +33,17 @@ class MY_Controller extends General_Controller {
 		}
 	}
 
-	public function _solo_file_upload($filename, $pathToUpload, $config = '',$generatedFileName=''){
+	public function _solo_file_upload($filename, $pathToUpload, $config = '', $generatedFileName=''){
 
 		$config = array(
 			'upload_path' => $pathToUpload,
-			'allowed_types' => "gif|jpg|png|jpeg",
+			'allowed_types' => "jpg|gif|png|jpeg|JPG|PNG",
 			'max_size' => "4048000", // Can be set to 4 MB(4048 Kb)
 		);
 		
-		if(!empty($generatedFileName)){
+		if(! empty($generatedFileName)){
 			$config['file_name'] = $generatedFileName;
 		}
-		
 		$this->load->library('upload');
 		$this->upload->initialize($config);
 

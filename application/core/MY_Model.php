@@ -4,30 +4,36 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class MY_Model extends CI_Model {
 
 	/*============================For Single Website Purpose Only Start============================*/
-	public function getProductData($ssql,$dataLimit ='',$offset =''){
+	public function getProductData($ssql, $dataLimit ='',$offset =''){
         $data = array();
-        if(!empty($ssql)){
+        if(! empty($ssql)){
             if(empty($dataLimit)){
                 $dataLimit = NULL;
             }
             $data = $this->__getwheredata('products','*',$ssql,'id','DESC',$dataLimit,$offset);
+			foreach($data as $key => $product){
+				$ssql = 'id = ' . $product['category_id'];
+				$catData = $this->getServiceCategory($ssql);
+				$data[$key]['category_name'] = $catData[0]['category_name'];
+			}
         }
         
         return $data;
-        
     }
-    public function getServiceCategory($ssql,$dataLimit ='',$offset =''){
+
+    public function getServiceCategory($ssql, $dataLimit ='',$offset =''){
         $data = array();
         if(!empty($ssql)){
             if(empty($dataLimit)){
                 $dataLimit = NULL;
             }
-            $data = $this->__getwheredata('categories','*',$ssql,'id','ASC',$dataLimit,$offset);
+            $data = $this->__getwheredata('categories','*',$ssql,'id','DESC',$dataLimit,$offset);
         }
-        
+
         return $data;
     }
-    public function getSubscriptionPlanMyModl($ssql,$dataLimit ='',$offset =''){
+	
+    public function getSubscriptionPlanMyModl($ssql, $dataLimit ='',$offset =''){
         $data = array();
         if(!empty($ssql)){
             if(empty($dataLimit)){
@@ -44,7 +50,8 @@ class MY_Model extends CI_Model {
         }
         return $data->result_array();
     }
-    public function getServiceType($ssql = '',$dataLimit ='',$offset =''){
+
+    public function getServiceType($ssql = '', $dataLimit ='',$offset =''){
 
         if(empty($ssql)){ $ssql = "eStatus = 'Active'"; }
         if(empty($dataLimit)){
@@ -54,7 +61,8 @@ class MY_Model extends CI_Model {
         return $data;
         
     }
-	public function getLoginData($loginId,$userType){
+
+	public function getLoginData($loginId, $userType){
 
 		$loginId = decodeData($loginId);
 		$tablename = "register_agent";
@@ -76,8 +84,8 @@ class MY_Model extends CI_Model {
 		$result = $data->result();
 		return $result[0];
 	}
-	public function getLanguageLabel($labelIdentifier = '', $labelIdentifierType = '')
-    {
+
+	public function getLanguageLabel($labelIdentifier = '', $labelIdentifierType = ''){
         if( !empty($labelIdentifier) && !empty($labelIdentifierType) ){
             $this->db->where($labelIdentifierType , $labelIdentifier);
         }

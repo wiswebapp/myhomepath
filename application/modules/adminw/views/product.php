@@ -146,7 +146,7 @@
                                         <img class="img-thumbnail" src="<?=base_url('webimages/productImage/').$pageData[$i]['product_image']?>" height="70" width="100">
                                       </td>
                                       <td><?=$pageData[$i]['product_name']?></td>
-                                      <td><?=$pageData[$i]['category_id']?></td>
+                                      <td><?=$pageData[$i]['category_name']?></td>
                                       <td><?=$pageData[$i]['price']?></td>
                                       <td><?=$status?></td>
                                       <td>

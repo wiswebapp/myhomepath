@@ -33,6 +33,7 @@ class Master extends MY_Controller {
 		
 		$this->load->view('category',compact('data'));
 	}
+
 	public function add_category(){
 		$post = $this->input->post();
 		$data['action'] = 'add';
@@ -53,38 +54,40 @@ class Master extends MY_Controller {
 			$this->load->view('category_action',compact('data'));
 		}
 	}
-	public function edit_category($id){
-		if(!empty($id)){
-			$post = $this->input->post();
-			$data['tconfig'] = $this->tconfig();
-			$where = array('id' => $id);
-			
-			if(empty($post)){
-				$data['action'] = 'edit';
-				$data['pageData'] = $this->Master_model->__getsingledata('categories','*',$where);
-				$this->load->view('category_action',compact('data'));
-			}else{
-				//Image Upload
-				if(!empty($_FILES['vLogo']['name'])){
-					$pathToUpload = $this->tconfig['root_path'].'webimages/category/';
-					//unlink old image
-					unlink($pathToUpload.$post['oldvLogo']);
-					unset($post['oldvLogo']);
-					$generatedFileName = "web_category_".time();
-					$upload = $this->_solo_file_upload('vLogo',$pathToUpload,'',$generatedFileName);
-					$fileName = $upload['message']['upload_data']['raw_name'].$upload['message']['upload_data']['file_ext'];
-					$post['vLogo'] = $fileName;
-				}else{
-					unset($post['oldvLogo']);
-				}
 
-				$update = $this->Master_model->__update_single_data('categories',$post,$where);
-				$this->__setflash( $update, 'Data Updated Successfully .!', 'Error while updating', admin_url('master/category') );
-			}
-		}else{
+	public function edit_category($id){
+		if(empty($id)){
 			return redirect(admin_url('master/category'));
 		}
+		
+		$post = $this->input->post();
+		$data['tconfig'] = $this->tconfig();
+		$where = array('id' => $id);
+		
+		if(empty($post)){
+			$data['action'] = 'edit';
+			$data['pageData'] = $this->Master_model->__getsingledata('categories','*',$where);
+			$this->load->view('category_action',compact('data'));
+		}else{
+			//Image Upload
+			if(!empty($_FILES['vLogo']['name'])){
+				$pathToUpload = $this->tconfig['root_path'].'webimages/category/';
+				//unlink old image
+				unlink($pathToUpload.$post['oldvLogo']);
+				unset($post['oldvLogo']);
+				$generatedFileName = "web_category_".time();
+				$upload = $this->_solo_file_upload('vLogo', $pathToUpload, '', $generatedFileName);
+				$fileName = $upload['message']['upload_data']['raw_name'].$upload['message']['upload_data']['file_ext'];
+				$post['vLogo'] = $fileName;
+			}else{
+				unset($post['oldvLogo']);
+			}
+
+			$update = $this->Master_model->__update_single_data('categories',$post,$where);
+			$this->__setflash( $update, 'Data Updated Successfully .!', 'Error while updating', admin_url('master/category') );
+		}
 	}
+
 	/*==========================PRODUCT LIST==========================*/
 	public function product(){
 		$ssql = "deleted_at IS NULL";
@@ -102,9 +105,10 @@ class Master extends MY_Controller {
 		$data['pagedata']['tconfig'] = $this->tconfig();
 		$config = $this->configPagination(admin_url('master/product'),$countData,$this->dataLimit,4);
 		$this->pagination->initialize($config);
-
+		
 		$this->load->view('product',compact('data'));
 	}
+
 	public function add_product() {
 		$post = $this->input->post();
 		$data['action'] = 'add';
@@ -129,44 +133,45 @@ class Master extends MY_Controller {
 			$this->load->view('product_action',compact('data'));
 		}
 	}
+
 	public function edit_product($id) {
+		if(empty($id)) return redirect(admin_url('master/product'));
+		
 		$data['tconfig'] = $this->tconfig();
 		$ssqlCat = "status = 'Active'";
 		$data['category'] = $this->Master_model->getServiceCategory($ssqlCat);
 	
-		if(!empty($id)){
-			$post = $this->input->post();
-			$ssqlCat = "status = 'Active'";
-			$data['product'] = $this->Master_model->getProductData($ssqlCat);
-			$where = array('id'=>$id);
-			if(empty($post)){
-				$data['action'] = 'edit';
-				$data['pageData'] = $this->Master_model->__getsingledata('products','*',$where);
-				$this->load->view('product_action',compact('data'));
-			}else{
-				//Image Upload
-				if(! empty($_FILES['product_image']['name'])){
-					$pathToUpload = $data['tconfig']['root_path'].'webimages/productImage/';
-					//unlink old image
-					if(! empty($post['oldvLogo'])) {
-						unlink($pathToUpload.$post['oldvLogo']);
-					}
-					unset($post['oldvLogo']);
-					$generatedFileName = "web_product_".time();
-					$upload = $this->_solo_file_upload('product_image',$pathToUpload,'',$generatedFileName);
-					if($upload['success']){
-						$fileName = $upload['message']['upload_data']['raw_name'].$upload['message']['upload_data']['file_ext'];
-						$post['product_image'] = $fileName;
-					}
-				}else{
-					unset($post['oldvLogo']);
-				}
-				
-				$update = $this->Master_model->__update_single_data('products',$post,$where);
-				$this->__setflash( $update, 'Data Updated Successfully .!', 'Error while updating', admin_url('master/product') );
-			}
+		$post = $this->input->post();
+		$ssqlCat = "status = 'Active'";
+		$data['product'] = $this->Master_model->getProductData($ssqlCat);
+		$where = array('id'=>$id);
+		if(empty($post)){
+			$data['action'] = 'edit';
+			$data['pageData'] = $this->Master_model->__getsingledata('products','*',$where);
+			$this->load->view('product_action',compact('data'));
 		}else{
-			return redirect(admin_url('master/product'));
+			//Image Upload
+			
+			if(! empty($_FILES['product_image']['name'])){
+				$pathToUpload = $data['tconfig']['root_path'].'webimages/productImage/';
+				
+				//unlink old image
+				if(! empty($post['oldvLogo'])) {
+					unlink($pathToUpload.$post['oldvLogo']);
+				}
+				unset($post['oldvLogo']);
+				$generatedFileName = "web_product_".time();
+				$upload = $this->_solo_file_upload('product_image', $pathToUpload, '', $generatedFileName);
+				if($upload['success']){
+					$fileName = $upload['message']['upload_data']['raw_name'].$upload['message']['upload_data']['file_ext'];
+					$post['product_image'] = $fileName;
+				}
+			}else{
+				unset($post['oldvLogo']);
+			}
+
+			$update = $this->Master_model->__update_single_data('products',$post,$where);
+			$this->__setflash( $update, 'Data Updated Successfully .!', 'Error while updating', admin_url('master/product') );
 		}
 	}
 	/*==========================SUBSCRIPTION PLAN LIST==========================*/
